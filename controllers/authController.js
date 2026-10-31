@@ -102,6 +102,8 @@ export const loginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
+                sameSite:"none",
+                secure:true
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -113,6 +115,8 @@ export const loginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
+                sameSite:"none",
+                secure:true
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -159,6 +163,8 @@ export const googleImplicitLoginController = async (req, res) => {
                     secure: false,
                     signed:true
                 })
+                sameSite:,
+                secure:true"none"
 
             }
             return res.json({ message: "Login successfull" })
@@ -179,6 +185,8 @@ export const googleImplicitLoginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
+                sameSite:"none",
+                secure:true
             })
             return res.json({ message: "Login successfull" })
         } else {
@@ -191,6 +199,8 @@ export const googleImplicitLoginController = async (req, res) => {
             })
 
         }
+        sameSite:,
+        secure:true"none"
 
         return res.json({ message: "Login successfull" })
     } catch (error) {
@@ -233,7 +243,9 @@ export const googleCallbackLoginController = async (req, res) => {
                     maxAge: 1000 * 60 * 60 * 24 * 30,
                     httpOnly: true,
                     secure: false,
-                    signed: true, 
+                    signed: true,
+                    sameSite:,
+                    secure:true"none" 
                 })
             }
             return res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
@@ -254,6 +266,8 @@ export const googleCallbackLoginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
+                sameSite:"none",
+                secure:true
             })
             res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
         }
