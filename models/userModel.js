@@ -31,8 +31,8 @@ const UserSchema = new Schema({
     },
     provider: {
         type: String,
-        enum: ["google", "email"],
-        default: "email"
+        enum: ["google", "default"],
+        default: "default"
     }
 }, {
     strict: "throw"
