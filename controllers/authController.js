@@ -26,8 +26,8 @@ export const userDetailController = async (req, res) => {
     const user = req.user
     if (!user) return res.status(401).json({ error: "Unauthorized" })
     return res.status(200).json({ name: user.name, email: user.email, picture: user.picture, role: user.role })
-function _unused() {
-}
+    function _unused() {
+    }
 
 
 
@@ -52,7 +52,8 @@ export const registerContoller = async (req, res, next) => {
 
         const saltAndHashPassword = await bcrypt.hash(password, 12)
         await User.insertOne({
-            _id: userId, name, email, password: saltAndHashPassword}, { session })
+            _id: userId, name, email, password: saltAndHashPassword
+        }, { session })
 
         await session.commitTransaction()
         res.status(201).json({ message: "Sign up successful" })
@@ -100,10 +101,9 @@ export const loginController = async (req, res) => {
             res.cookie("sid", `${Buffer.from(createdSession._id).toString('base64url')}`, {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: false,
                 signed: true,
-                sameSite:"none",
-                secure:true
+                sameSite: "none",
+                secure: true
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -113,10 +113,9 @@ export const loginController = async (req, res) => {
             res.cookie("sid", `${Buffer.from(createdSession._id).toString('base64url')}`, {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: false,
                 signed: true,
-                sameSite:"none",
-                secure:true
+                sameSite: "none",
+                secure: true
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -160,11 +159,11 @@ export const googleImplicitLoginController = async (req, res) => {
                 res.cookie("sid", `${Buffer.from(createdSession._id).toString('base64url')}`, {
                     maxAge: 1000 * 60 * 60 * 24 * 30,
                     httpOnly: true,
-                    secure: false,
-                    signed:true
+                    signed: true,
+                    sameSite: "none",
+                    secure: true
                 })
-                sameSite:,
-                secure:true"none"
+
 
             }
             return res.json({ message: "Login successfull" })
@@ -185,8 +184,8 @@ export const googleImplicitLoginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
-                sameSite:"none",
-                secure:true
+                sameSite: "none",
+                secure: true
             })
             return res.json({ message: "Login successfull" })
         } else {
@@ -195,12 +194,12 @@ export const googleImplicitLoginController = async (req, res) => {
             res.cookie("sid", `${Buffer.from(createdSession.id).toString('base64url')}`, {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: false,
+                secure: true,
+                sameSite:"none"
             })
 
         }
-        sameSite:,
-        secure:true"none"
+        
 
         return res.json({ message: "Login successfull" })
     } catch (error) {
@@ -242,10 +241,9 @@ export const googleCallbackLoginController = async (req, res) => {
                 res.cookie("sid", `${Buffer.from(session._id).toString('base64url')}`, {
                     maxAge: 1000 * 60 * 60 * 24 * 30,
                     httpOnly: true,
-                    secure: false,
+                    secure: true,
                     signed: true,
-                    sameSite:,
-                    secure:true"none" 
+                    sameSite:"none"
                 })
             }
             return res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
@@ -256,7 +254,7 @@ export const googleCallbackLoginController = async (req, res) => {
             dbSession.startTransaction()
             const createdSession = await Session.insertOne({ userId }, { session: dbSession })
             await User.insertOne({
-                _id: userId, name: credential.name, email: credential.email, picture: credential.picture, provider: "google", 
+                _id: userId, name: credential.name, email: credential.email, picture: credential.picture, provider: "google",
 
             }, { session: dbSession })
 
@@ -264,10 +262,9 @@ export const googleCallbackLoginController = async (req, res) => {
             res.cookie("sid", `${Buffer.from(createdSession._id).toString('base64url')}`, {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
-                secure: false,
                 signed: true,
-                sameSite:"none",
-                secure:true
+                sameSite: "none",
+                secure: true
             })
             res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
         }
