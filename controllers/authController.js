@@ -102,7 +102,6 @@ export const loginController = async (req, res) => {
                 httpOnly: true,
                 secure: false,
                 signed: true,
-                sameSite: "none"
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -113,7 +112,7 @@ export const loginController = async (req, res) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
                 secure: false,
-                signed: true, sameSite: "none"
+                signed: true,
             })
             return res.status(200).json({ message: "Login Successful", data: { name: existUser.name, email } })
         }
@@ -158,7 +157,7 @@ export const googleImplicitLoginController = async (req, res) => {
                     maxAge: 1000 * 60 * 60 * 24 * 30,
                     httpOnly: true,
                     secure: false,
-                    signed: true, sameSite: "none"
+                    signed:true
                 })
 
             }
@@ -179,7 +178,7 @@ export const googleImplicitLoginController = async (req, res) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
                 secure: false,
-                signed: true, sameSite: "none"
+                signed: true,
             })
             return res.json({ message: "Login successfull" })
         } else {
@@ -189,7 +188,6 @@ export const googleImplicitLoginController = async (req, res) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
                 secure: false,
-                signed: true,
             })
 
         }
@@ -235,7 +233,7 @@ export const googleCallbackLoginController = async (req, res) => {
                     maxAge: 1000 * 60 * 60 * 24 * 30,
                     httpOnly: true,
                     secure: false,
-                    signed: true, sameSite: "none"
+                    signed: true, 
                 })
             }
             return res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
@@ -255,7 +253,7 @@ export const googleCallbackLoginController = async (req, res) => {
                 maxAge: 1000 * 60 * 60 * 24 * 30,
                 httpOnly: true,
                 secure: false,
-                signed: true, sameSite: "none"
+                signed: true,
             })
             res.redirect(`${process.env.FRONTEND_URL}/auth/login?task=success`)
         }
