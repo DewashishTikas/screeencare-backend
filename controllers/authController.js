@@ -26,12 +26,6 @@ export const userDetailController = async (req, res) => {
     const user = req.user
     if (!user) return res.status(401).json({ error: "Unauthorized" })
     return res.status(200).json({ name: user.name, email: user.email, picture: user.picture, role: user.role })
-    function _unused() {
-    }
-
-
-
-
 }
 export const registerContoller = async (req, res, next) => {
 
@@ -81,13 +75,13 @@ export const loginController = async (req, res) => {
             email
         }).lean()
         if (!existUser) {
-            return res.status(401).json({ error: "Login failed" })
+            return res.status(401).json({ error: "Invalid Credentials" })
         }
         if (existUser.provider !== 'default') return res.status(403).json({ error: "Login through different mode" })
         const comparePwd = await bcrypt.compare(password, existUser.password)
 
         if (!comparePwd) {
-            return res.status(401).json({ error: "Login failed" })
+            return res.status(401).json({ error: "Invalid Credentials" })
         }
 
         const sid = (Buffer.from(req.signedCookies.sid || "", "base64url").toString());

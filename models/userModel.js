@@ -29,6 +29,11 @@ const UserSchema = new Schema({
         enum: ["admin", "technician", "user"],
         default: "user"
     },
+    phone: {
+        type: String,
+        trim: true,
+        default: null
+    },
     provider: {
         type: String,
         enum: ["google", "default"],

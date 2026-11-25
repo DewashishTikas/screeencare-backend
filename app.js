@@ -4,6 +4,14 @@ import helmet from 'helmet'
 import cors from 'cors'
 import { connectDB } from './config/mongodb.js'
 import authRoutes from "./routes/authRoutes.js"
+import phoneRoutes from "./routes/phoneRoutes.js"
+import addressRoutes from "./routes/addressRoutes.js"
+import cartRoutes from "./routes/cartRoutes.js"
+import paymentRoutes from "./routes/paymentRoutes.js"
+import orderRoutes from "./routes/orderRoutes.js"
+import deliveryRoutes from "./routes/deliveryRoutes.js"
+import adminRoutes from "./routes/adminRoutes.js"
+import webhookRoutes from "./routes/webhookRoutes.js"
 await connectDB()
 const app = express()
 app.set('trust proxy', true);
@@ -39,6 +47,15 @@ app.use("/error",async () => {
 })
 
 app.use("/auth", authRoutes)
+app.use("/phones", phoneRoutes)
+app.use("/phone", phoneRoutes)
+app.use("/addresses", addressRoutes)
+app.use("/cart", cartRoutes)
+app.use("/payments", paymentRoutes)
+app.use("/orders", orderRoutes)
+app.use("/delivery", deliveryRoutes)
+app.use("/admin", adminRoutes)
+app.use("/webhooks", webhookRoutes)
 
 app.listen(process.env.PORT, () => {
   console.log(`Listening at port ${process.env.PORT}`);
