@@ -95,32 +95,13 @@ export async function getPhoneBrands(req, res) {
 }
 
 /**
- * Helper to ensure high-quality backend image for phone models
+ * Helper to return the phone model image stored in the backend database
  */
 function resolvePhoneImage(phone) {
   if (phone.image && typeof phone.image === "string" && phone.image.trim() !== "") {
     return phone.image.trim();
   }
-  const name = (phone.name || "").toLowerCase();
-  const brand = (phone.brandName || phone.brandId?.name || "").toLowerCase();
-
-  if (/iphone|apple/i.test(name) || /apple/i.test(brand)) {
-    if (/16/i.test(name)) return "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=600";
-    return "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=600";
-  }
-  if (/samsung|galaxy/i.test(name) || /samsung/i.test(brand)) {
-    return "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=600";
-  }
-  if (/oneplus|nord/i.test(name) || /oneplus/i.test(brand)) {
-    return "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600";
-  }
-  if (/pixel|google/i.test(name) || /google/i.test(brand)) {
-    return "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=600";
-  }
-  if (/redmi|xiaomi/i.test(name) || /redmi|xiaomi/i.test(brand)) {
-    return "https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=600";
-  }
-  return "https://images.unsplash.com/photo-1511707171634-5f897ff02560?w=600";
+  return null;
 }
 
 /**
@@ -265,24 +246,21 @@ function resolveProductAccessoryImage(product, categoryType) {
 }
 
 /**
- * GET /phones/:phoneId/tempered-glass
- * Get all tempered glass accessories compatible with this phone model with live stock info
- * (Phone validated and loaded by validatePhoneId middleware into req.phone)
+ * Shared helper for category-specific phone accessory endpoints
+ * (e.g., tempered glass, flip covers).
  */
-export async function getTemperedGlassForPhone(req, res) {
+async function getPhoneAccessoriesByCategory(req, res, { categoryRegex, defaultCategoryType, defaultQty, logLabel }) {
   try {
     const phone = req.phone;
 
-    // Find tempered glass category by name regex
-    const categoryFilter = {
-      name: { $regex: /tempered\s*glass/i },
+    const categories = await Category.find({
+      name: { $regex: categoryRegex },
       status: "active",
-    };
-
-    const categories = await Category.find(categoryFilter).select("_id name").lean();
+    })
+      .select("_id name")
+      .lean();
     const categoryIds = categories.map((cat) => cat._id);
 
-    // If categories exist, filter by them, otherwise search products with tempered glass in name
     const productQuery = {
       phoneModelId: phone._id,
       isActive: true,
@@ -291,28 +269,27 @@ export async function getTemperedGlassForPhone(req, res) {
     if (categoryIds.length > 0) {
       productQuery.categoryId = { $in: categoryIds };
     } else {
-      productQuery.name = { $regex: /tempered\s*glass/i };
+      productQuery.name = { $regex: categoryRegex };
     }
 
     const products = await Product.find(productQuery)
       .populate("categoryId", "name")
       .lean();
 
-    // Attach stock availability from Stock model to each product
-    const stockMap = await resolveStockForProducts(products, "tempered-glass");
+    const stockMap = await resolveStockForProducts(products, defaultCategoryType);
     const brandName = phone.brandId?.name || null;
 
     const data = products.map((product) => {
       const stockInfo = stockMap.get(product._id?.toString()) || {
-        quantity: 8,
-        availableQuantity: 8,
+        quantity: defaultQty,
+        availableQuantity: defaultQty,
         lowStockThreshold: 10,
         isLowStock: true,
         inStock: true,
         status: "low_stock",
       };
 
-      const resolvedImage = resolveProductAccessoryImage(product, "tempered-glass");
+      const resolvedImage = resolveProductAccessoryImage(product, defaultCategoryType);
 
       return {
         ...product,
@@ -336,9 +313,23 @@ export async function getTemperedGlassForPhone(req, res) {
       data,
     });
   } catch (error) {
-    console.error("Error in getTemperedGlassForPhone:", error);
+    console.error(`Error in ${logLabel}:`, error);
     return res.status(500).json({ success: false, error: "Internal server error" });
   }
+}
+
+/**
+ * GET /phones/:phoneId/tempered-glass
+ * Get all tempered glass accessories compatible with this phone model with live stock info
+ * (Phone validated and loaded by validatePhoneId middleware into req.phone)
+ */
+export async function getTemperedGlassForPhone(req, res) {
+  return getPhoneAccessoriesByCategory(req, res, {
+    categoryRegex: /tempered\s*glass/i,
+    defaultCategoryType: "tempered-glass",
+    defaultQty: 8,
+    logLabel: "getTemperedGlassForPhone",
+  });
 }
 
 /**
@@ -347,72 +338,12 @@ export async function getTemperedGlassForPhone(req, res) {
  * (Phone validated and loaded by validatePhoneId middleware into req.phone)
  */
 export async function getFlipCoversForPhone(req, res) {
-  try {
-    const phone = req.phone;
-
-    const categoryFilter = {
-      name: { $regex: /flip\s*cover/i },
-      status: "active",
-    };
-
-    const categories = await Category.find(categoryFilter).select("_id name").lean();
-    const categoryIds = categories.map((cat) => cat._id);
-
-    const productQuery = {
-      phoneModelId: phone._id,
-      isActive: true,
-    };
-
-    if (categoryIds.length > 0) {
-      productQuery.categoryId = { $in: categoryIds };
-    } else {
-      productQuery.name = { $regex: /flip\s*cover/i };
-    }
-
-    const products = await Product.find(productQuery)
-      .populate("categoryId", "name")
-      .lean();
-
-    const stockMap = await resolveStockForProducts(products, "flip-cover");
-    const brandName = phone.brandId?.name || null;
-
-    const data = products.map((product) => {
-      const stockInfo = stockMap.get(product._id?.toString()) || {
-        quantity: 6,
-        availableQuantity: 6,
-        lowStockThreshold: 10,
-        isLowStock: true,
-        inStock: true,
-        status: "low_stock",
-      };
-
-      const resolvedImage = resolveProductAccessoryImage(product, "flip-cover");
-
-      return {
-        ...product,
-        images: [resolvedImage],
-        image: resolvedImage,
-        brandName,
-        phoneModelName: phone.name,
-        stock: stockInfo,
-      };
-    });
-
-    return res.status(200).json({
-      success: true,
-      phone: {
-        _id: phone._id,
-        name: phone.name,
-        brandName,
-        brandId: phone.brandId,
-      },
-      count: data.length,
-      data,
-    });
-  } catch (error) {
-    console.error("Error in getFlipCoversForPhone:", error);
-    return res.status(500).json({ success: false, error: "Internal server error" });
-  }
+  return getPhoneAccessoriesByCategory(req, res, {
+    categoryRegex: /flip\s*cover/i,
+    defaultCategoryType: "flip-cover",
+    defaultQty: 6,
+    logLabel: "getFlipCoversForPhone",
+  });
 }
 
 /**
@@ -431,18 +362,21 @@ export async function getAccessoriesForPhone(req, res) {
     };
 
     let matchedCategoryIds = [];
+    let catRegex = null;
     if (category) {
       if (mongoose.isValidObjectId(category)) {
         matchedCategoryIds = [new mongoose.Types.ObjectId(category)];
         productQuery.categoryId = matchedCategoryIds[0];
       } else {
-        let catRegex = /tempered\s*glass/i;
-        if (/flip/i.test(category)) {
+        if (/tempered/i.test(category)) {
+          catRegex = /tempered\s*glass/i;
+        } else if (/flip/i.test(category)) {
           catRegex = /flip\s*cover/i;
         } else if (/privacy/i.test(category)) {
           catRegex = /privacy/i;
         } else {
-          catRegex = new RegExp(category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+          const escaped = category.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          catRegex = new RegExp(escaped.replace(/[-_]+/g, "\\s*"), "i");
         }
 
         const matchedCats = await Category.find({
@@ -468,6 +402,8 @@ export async function getAccessoriesForPhone(req, res) {
       const fallbackQuery = { isActive: true };
       if (matchedCategoryIds.length > 0) {
         fallbackQuery.categoryId = { $in: matchedCategoryIds };
+      } else if (catRegex) {
+        fallbackQuery.name = catRegex;
       }
       const templates = await Product.find(fallbackQuery)
         .populate("categoryId", "name")
